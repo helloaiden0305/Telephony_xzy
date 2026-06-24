@@ -49,15 +49,19 @@
 ### 1.1 插卡检测
 
 ```
-用户插入 SIM 卡
-  ↓ 卡槽硬件检测插入，Kernel 收到 GPIO 中断
-Modem 检测到 SIM 卡物理插入
-  ↓ 上报 SIM 状态变化
-RILD → RIL_onUnsolicitedResponse(RIL_UNSOL_SIM_STATUS_CHANGED)
-  ↓ socket
-RIL.java → handleSimStatusChanged()
-  ↓
-通知 IccCard（SIM 卡状态管理）
+┌────┐  ┌──────┐  ┌──────┐  ┌───────┐  ┌───────┐
+│内核 │  │Modem │  │ RILD │  │RIL.java│  │IccCard│
+└──┬──┘  └──┬───┘  └──┬───┘  └───┬───┘  └───┬───┘
+   │ GPIO   │          │          │          │
+   │中断    │          │          │          │
+   │────────│          │          │          │
+   │        │ SIM 状态 │          │          │
+   │        │变化      │          │          │
+   │        │──────────│          │          │
+   │        │          │ socket   │          │
+   │        │          │──────────│          │
+   │        │          │          │ 状态上报  │
+   │        │          │          │──────────│
 ```
 
 ### 1.2 SIM 卡初始化
@@ -90,7 +94,7 @@ ServiceState：OUT_OF_SERVICE → IN_SERVICE
 Phone.notifyServiceStateChanged()
 ```
 
-> **到此为止**：有信号格数，能打电话/发短信。  
+> **到此为止**：有信号格数，能打电话/发短信。
 > 数据上网需要继续走后续的 APN + PDP 流程。
 
 ---
@@ -131,7 +135,6 @@ StatusBar 更新信号图标
 | **RSSI** | 接收信号强度指示 | dBm |
 | **RSRP** | 参考信号接收功率（4G） | dBm |
 | **RSRQ** | 参考信号接收质量（4G） | dB |
-| **SNR** | 信噪比 | dB |
 
 ### 2.4 格数映射（典型值）
 
@@ -155,7 +158,8 @@ AT+CSQ 返回: +CSQ: <rssi>,<ber>
   ber:  0~7（误码率，99=未知）
 
   换算: RSSI(dBm) = -113 + 2 × rssi
-  示例: rssi=25 → RSSI = -63 dBm → 满格
+  示例: rssi=25 → RSSI = -63 dBm（极强信号）
+  示例: rssi=13 → RSSI = -87 dBm（约 3 格）
 ```
 
 ---
@@ -173,17 +177,17 @@ AT+CSQ 返回: +CSQ: <rssi>,<ber>
   ↓
 读取 APN 配置源（优先级从高到低）：
 
-  ① 用户在设置中手动选择/添加                       ← 最高
-     设置 → 移动网络 → 接入点名称(APN) → 选择/新建
-
-  ② CarrierConfigManager → 运营商配置文件（XML）    ← 高
+  ① CarrierConfigManager → 运营商配置文件（XML）    ← 最高
      例：中国移动定制 ROM 内置的 carrier_config.xml
 
-  ③ SIM 卡 EF_IMSI 推导运营商 → 查 apns-conf.xml    ← 中
+  ② SIM 卡 IMSI 推导运营商 → 查 apns-conf.xml       ← 中
      根据 IMSI 前缀 MCC+MNC 判断运营商（46000=移动）
 
-  ④ 系统内置 apns-conf.xml 全球 APN 列表            ← 低
+  ③ 系统内置 apns-conf.xml 全球 APN 列表            ← 低
      Android 系统自带的全球运营商 APN 数据库
+
+  ④ 用户在设置中手动选择/添加                       ← 最低
+     设置 → 移动网络 → 接入点名称(APN) → 选择/新建
 
   ↓ 匹配成功
   名称：中国移动  APN：cmnet  类型：default,supl,dun,mms  协议：IPv4v6
@@ -208,20 +212,24 @@ RIL 向核心网查询初始附着 APN → 核心网下发一个基础 APN
 ### 3.3 PDP 上下文激活（数据通道建立）
 
 ```
-DcTracker.setupDataCall()        // Android 9~12
-DataNetworkController.setupData() // Android 13+
-  ↓
-RIL.java → RIL_REQUEST_SETUP_DATA_CALL(apn, profileId, ...)
-  ↓ socket
-RILD 发 AT 命令到 Modem：
-  AT+CGDCONT=1,"IP","cmnet"   ← 配置 APN 参数
-  AT+CGACT=1,1                 ← 激活 PDP 上下文
-  ↓
-Modem 与核心网协商建立数据承载（PDP Context）
-  ↓ 核心网分配 IP + DNS + 网关
-Modem 返回：AT+CGACT: 1,1（激活成功）+ IP/DNS 信息
-  ↓
-DataConnection：INACTIVE → ACTIVE（数据通道建立完成）
+┌───────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌───────┐
+│DcTracker│ │ RIL  │  │ RILD │  │Modem │  │ 核心网 │
+└───┬───┘  └──┬───┘  └──┬───┘  └──┬───┘  └───┬───┘
+    │          │          │          │          │
+    │setupDataCall          │          │          │
+    │──────────│          │          │          │
+    │          │setupDataCall          │          │
+    │          │──────────│          │          │
+    │          │          │AT+CGDCONT          │          │
+    │          │          │────────────────────>│          │
+    │          │          │          │AT+CGACT          │          │
+    │          │          │          │─────────────>│          │
+    │          │          │          │          │IP分配    │
+    │          │          │          │<─────────────│          │
+    │          │          │          │AT+CGACT:1,1      │          │
+    │          │          │          │<────────────────│
+    │          │          │          │          │          │
+    │          │          │INACTIVE→ACTIVE          │          │
 ```
 
 > **PDP 是什么**：Packet Data Protocol，分组数据协议。可以理解为手机和核心网之间建立的一条"数据隧道"。隧道建好后，你的所有上网流量都走这条隧道。
@@ -250,7 +258,7 @@ SystemUI (MobileSignalController) 收到回调
 | `dun` | 网络共享（热点） |
 | `hipri` | 高优先级连接 |
 | `fota` | OTA 升级专用 |
-| `ims` | IMS 通话（VoLTE） |
+| `ims` | IMS 信令和媒体通道（VoLTE / ViLTE / RCS） |
 | `ia` | Initial Attach（初始附着） |
 
 ---
