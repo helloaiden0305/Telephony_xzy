@@ -5,41 +5,55 @@
   <meta charset="UTF-8">
   <title>Telephony</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: #fff; color: #24292f; display: flex; height: 100vh; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: #fff; color: #1f2328; display: flex; height: 100vh; line-height: 1.7; }
 
     /* 侧边栏 */
-    .sidebar { width: 280px; min-width: 280px; border-right: 1px solid #d0d7de; padding: 16px 0; overflow-y: auto; display: flex; flex-direction: column; }
+    .sidebar { width: 260px; min-width: 260px; border-right: 1px solid #d0d7de; padding: 16px 0; overflow-y: auto; display: flex; flex-direction: column; background: #fafbfc; }
     .sidebar-header { padding: 0 16px 16px; border-bottom: 1px solid #d0d7de; }
-    .sidebar-header h1 { font-size: 18px; }
+    .sidebar-header h1 { font-size: 18px; color: #1f2328; }
     .sidebar-header p { font-size: 13px; color: #656d76; margin-top: 4px; }
     .sidebar-section { padding: 8px 0; }
     .sidebar-section-title { padding: 4px 16px; font-size: 12px; font-weight: 600; color: #656d76; text-transform: uppercase; }
-    .sidebar a { display: block; padding: 4px 16px; font-size: 14px; color: #0969da; text-decoration: none; }
-    .sidebar a:hover { background: #f6f8fa; text-decoration: underline; }
-
-    /* 主内容 */
-    .content { flex: 1; overflow-y: auto; padding: 32px 64px; }
-    .content h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; margin-bottom: 16px; }
-    .content h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; margin-top: 32px; margin-bottom: 12px; }
-    .content h3 { font-size: 1.25em; margin-top: 24px; margin-bottom: 8px; }
-    .content p { margin: 8px 0; line-height: 1.6; }
-    .content ul, .content ol { padding-left: 24px; margin: 8px 0; }
-    .content li { margin: 4px 0; }
-    .content code { background: #f6f8fa; padding: 2px 6px; border-radius: 3px; font-size: 85%; }
-    .content pre { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 12px 0; }
-    .content pre code { background: none; padding: 0; }
-    .content table { border-collapse: collapse; width: 100%; margin: 12px 0; }
-    .content th, .content td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
-    .content th { background: #f6f8fa; }
-    .content blockquote { border-left: 4px solid #d0d7de; padding-left: 16px; color: #656d76; margin: 12px 0; }
-    .content hr { border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }
+    .sidebar a { display: block; padding: 4px 16px; font-size: 14px; color: #0969da; text-decoration: none; border-left: 2px solid transparent; }
+    .sidebar a:hover { background: #f0f3f6; }
+    .sidebar a.active { background: #e8edf2; border-left-color: #0969da; font-weight: 500; }
 
     /* 搜索 */
     .search-box { padding: 8px 16px; }
     .search-box input { width: 100%; padding: 6px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; outline: none; }
-    .search-box input:focus { border-color: #0969da; }
+    .search-box input:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.1); }
+
+    /* 主内容区 */
+    .content { flex: 1; overflow-y: auto; padding: 40px 80px; max-width: 900px; }
+    .content h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: 10px; margin-bottom: 24px; font-weight: 600; }
+    .content h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; margin-top: 40px; margin-bottom: 16px; font-weight: 600; }
+    .content h3 { font-size: 1.25em; margin-top: 28px; margin-bottom: 12px; font-weight: 600; }
+    .content h4 { font-size: 1.1em; margin-top: 24px; margin-bottom: 8px; font-weight: 600; }
+    .content p { margin: 12px 0; }
+    .content ul, .content ol { padding-left: 24px; margin: 12px 0; }
+    .content li { margin: 6px 0; }
+    .content li > ul, .content li > ol { margin: 4px 0; }
+    .content code { background: #f6f8fa; padding: 2px 6px; border-radius: 3px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 85%; color: #24292f; }
+    .content pre { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 16px 0; border: 1px solid #e1e4e8; }
+    .content pre code { background: none; padding: 0; font-size: 13px; line-height: 1.6; color: #24292f; }
+    .content table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+    .content th, .content td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+    .content th { background: #f6f8fa; font-weight: 600; }
+    .content tr:nth-child(even) { background: #f9fbfd; }
+    .content blockquote { border-left: 4px solid #d0d7de; padding: 4px 16px; color: #656d76; margin: 16px 0; background: #f9fbfd; border-radius: 0 6px 6px 0; }
+    .content hr { border: none; border-top: 2px solid #d0d7de; margin: 32px 0; }
+    .content img { max-width: 100%; border-radius: 6px; }
+    .content a { color: #0969da; text-decoration: none; }
+    .content a:hover { text-decoration: underline; }
+    .content strong { font-weight: 600; }
+
+    /* 欢迎页 */
+    .welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
+    .welcome h1 { border: none; margin-bottom: 16px; font-size: 2.5em; }
+    .welcome p { color: #656d76; font-size: 18px; }
   </style>
 </head>
 
@@ -55,75 +69,70 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-title">📁 导航</div>
-      <a href="#" onclick="loadDoc('README.md')">🏠 首页</a>
-      <a href="#" onclick="loadDoc('通讯初始化流程指南.md')">🔌 通讯初始化流程</a>
+      <a href="#" class="nav-link active" onclick="loadDoc('README.md', this)">🏠 首页</a>
+      <a href="#" class="nav-link" onclick="loadDoc('通讯初始化流程指南.md', this)">🔌 通讯初始化流程</a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-title">🔌 链路</div>
-      <a href="#" onclick="loadDoc('去电链路整理.md')">去电链路整理</a>
-      <a href="#" onclick="loadDoc('来电链路整理.md')">来电链路整理</a>
-      <a href="#" onclick="loadDoc('挂断链路整理.md')">挂断链路整理</a>
+      <a href="#" class="nav-link" onclick="loadDoc('去电链路整理.md', this)">去电链路整理</a>
+      <a href="#" class="nav-link" onclick="loadDoc('来电链路整理.md', this)">来电链路整理</a>
+      <a href="#" class="nav-link" onclick="loadDoc('挂断链路整理.md', this)">挂断链路整理</a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-title">📶 服务</div>
-      <a href="#" onclick="loadDoc('ims通讯服务相关.md')">ims通讯服务</a>
-      <a href="#" onclick="loadDoc('VOLTE 指南.md')">VoLTE 指南</a>
-      <a href="#" onclick="loadDoc('SIM卡插卡注册网络整理.md')">SIM卡插卡注册</a>
-      <a href="#" onclick="loadDoc('STK命令业务.md')">STK命令业务</a>
+      <a href="#" class="nav-link" onclick="loadDoc('ims通讯服务相关.md', this)">ims通讯服务</a>
+      <a href="#" class="nav-link" onclick="loadDoc('VOLTE 指南.md', this)">VoLTE 指南</a>
+      <a href="#" class="nav-link" onclick="loadDoc('SIM卡插卡注册网络整理.md', this)">SIM卡插卡注册</a>
+      <a href="#" class="nav-link" onclick="loadDoc('STK命令业务.md', this)">STK命令业务</a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-title">📡 硬件</div>
-      <a href="#" onclick="loadDoc('MAC 地址.md')">MAC 地址</a>
-      <a href="#" onclick="loadDoc('slot.md')">Slot</a>
+      <a href="#" class="nav-link" onclick="loadDoc('MAC 地址.md', this)">MAC 地址</a>
+      <a href="#" class="nav-link" onclick="loadDoc('slot.md', this)">Slot</a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-title">🔢 设备</div>
-      <a href="#" onclick="loadDoc('MEID、PLMN 和 SPN.md')">MEID/PLMN</a>
+      <a href="#" class="nav-link" onclick="loadDoc('MEID、PLMN 和 SPN.md', this)">MEID / PLMN</a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-title">🔍 其他</div>
-      <a href="#" onclick="loadDoc('内存分析指南.md')">内存分析</a>
-      <a href="#" onclick="loadDoc('桌面联系人快捷卡片重构与优化.md')">应用优化</a>
+      <a href="#" class="nav-link" onclick="loadDoc('内存分析指南.md', this)">内存分析</a>
+      <a href="#" class="nav-link" onclick="loadDoc('桌面联系人快捷卡片重构与优化.md', this)">应用优化</a>
     </div>
   </div>
 
   <!-- 主内容区 -->
   <div class="content" id="content">
-    <h1>👋 欢迎</h1>
-    <p>点击左侧导航查看文档。</p>
+    <div class="welcome">
+      <h1>👋 欢迎</h1>
+      <p>点击左侧导航查看文档</p>
+    </div>
   </div>
 
   <script>
-    // 加载 Markdown 文件（用 marked.js 解析）
-    async function loadDoc(name) {
+    // 配置 marked.js
+    marked.setOptions({
+      breaks: false,
+      gfm: true
+    });
+
+    // 加载文档
+    async function loadDoc(name, el) {
+      // 更新侧边栏高亮
+      document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+      if (el) el.classList.add('active');
+
       try {
         const res = await fetch(name);
         const text = await res.text();
-        document.getElementById('content').innerHTML = renderMarkdown(text);
+        document.getElementById('content').innerHTML = marked.parse(text);
         window.scrollTo(0, 0);
       } catch (e) {
         document.getElementById('content').innerHTML = '<h1>❌ 加载失败</h1><p>文件不存在或路径错误。</p>';
       }
     }
 
-    // 最简单的 Markdown 渲染器
-    function renderMarkdown(text) {
-      return text
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-        .replace(/^---$/gm, '<hr>')
-        .replace(/^\> (.+)$/gm, '<blockquote>$1</blockquote>')
-        .replace(/^- \[(.+)\]\((.+)\)$/gm, '• [$1]($2)')
-        .replace(/^- (.+)$/gm, '• $1')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/`(.+?)`/g, '<code>$1</code>')
-        .replace(/^(\d+)\. (.+)$/gm, '$1. $2')
-        .replace(/\n\n/g, '<br><br>')
-        .replace(/\n/g, '<br>');
-    }
-
-    // 搜索
+    // 搜索侧边栏
     document.getElementById('searchInput').addEventListener('input', function (e) {
       const q = e.target.value.toLowerCase();
       document.querySelectorAll('.sidebar a').forEach(a => {
