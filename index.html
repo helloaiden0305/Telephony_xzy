@@ -8,9 +8,9 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: #fff; color: #1f2328; display: flex; height: 100vh; line-height: 1.7; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: #fff; color: #1f2328; display: flex; height: 100vh; overflow: hidden; line-height: 1.7; }
 
-    /* 侧边栏 */
+    /* 左侧栏 */
     .sidebar { width: 260px; min-width: 260px; border-right: 1px solid #d0d7de; padding: 16px 0; overflow-y: auto; display: flex; flex-direction: column; background: #fafbfc; }
     .sidebar-header { padding: 0 16px 16px; border-bottom: 1px solid #d0d7de; }
     .sidebar-header h1 { font-size: 18px; color: #1f2328; }
@@ -25,6 +25,9 @@
     .search-box { padding: 8px 16px; }
     .search-box input { width: 100%; padding: 6px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; outline: none; }
     .search-box input:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.1); }
+
+    /* 主内容+目录容器 */
+    .main-area { flex: 1; display: flex; overflow: hidden; }
 
     /* 主内容区 */
     .content { flex: 1; overflow-y: auto; padding: 40px 80px; }
@@ -50,6 +53,13 @@
     .content a:hover { text-decoration: underline; }
     .content strong { font-weight: 600; }
 
+    /* 目录栏 */
+    .toc { width: 240px; min-width: 240px; border-left: 1px solid #d0d7de; padding: 20px 12px; overflow-y: auto; background: #fafbfc; display: none; }
+    .toc-title { font-size: 12px; font-weight: 600; color: #656d76; text-transform: uppercase; margin-bottom: 12px; padding-left: 8px; }
+    .toc-item { display: block; padding: 5px 8px; font-size: 13px; color: #24292f; text-decoration: none; border-left: 2px solid transparent; cursor: pointer; border-radius: 0 4px 4px 0; }
+    .toc-item:hover { background: #f0f3f6; }
+    .toc-item.active { color: #0969da; border-left-color: #0969da; background: #e8edf2; font-weight: 500; }
+
     /* 欢迎页 */
     .welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
     .welcome h1 { border: none; margin-bottom: 16px; font-size: 2.5em; }
@@ -58,7 +68,7 @@
 </head>
 
 <body>
-  <!-- 侧边栏 -->
+  <!-- 左侧导航 -->
   <div class="sidebar">
     <div class="sidebar-header">
       <h1>📚 Telephony</h1>
@@ -101,11 +111,17 @@
     </div>
   </div>
 
-  <!-- 主内容区 -->
-  <div class="content" id="content">
-    <div class="welcome">
-      <h1>👋 欢迎</h1>
-      <p>点击左侧导航查看文档</p>
+  <!-- 主内容 + 右侧目录 -->
+  <div class="main-area">
+    <div class="content" id="content">
+      <div class="welcome">
+        <h1>👋 欢迎</h1>
+        <p>点击左侧导航查看文档</p>
+      </div>
+    </div>
+    <div class="toc" id="toc">
+      <div class="toc-title">目录</div>
+      <div id="toc-list"></div>
     </div>
   </div>
 
@@ -116,6 +132,63 @@
       gfm: true
     });
 
+    // 生成目录 & 给标题加 ID
+    function buildTOC() {
+      const content = document.getElementById('content');
+      const headings = content.querySelectorAll('h1, h2, h3, h4');
+      const tocList = document.getElementById('toc-list');
+      tocList.innerHTML = '';
+
+      if (headings.length === 0) {
+        document.getElementById('toc').style.display = 'none';
+        return;
+      }
+      document.getElementById('toc').style.display = 'block';
+
+      headings.forEach((h, i) => {
+        if (!h.id) h.id = 'heading-' + i;
+        const level = parseInt(h.tagName[1]);
+        const indent = (level - 1) * 16;
+        const a = document.createElement('a');
+        a.href = '#';
+        a.textContent = h.textContent;
+        a.className = 'toc-item';
+        a.style.paddingLeft = (8 + indent) + 'px';
+        a.style.fontSize = level === 1 ? '14px' : (level === 2 ? '13px' : '12px');
+        a.style.fontWeight = level <= 2 ? '600' : '400';
+        a.setAttribute('data-target', h.id);
+        a.onclick = (e) => {
+          e.preventDefault();
+          h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+        tocList.appendChild(a);
+      });
+    }
+
+    // 滚动监听（高亮当前章节）
+    function initScrollSpy() {
+      const content = document.getElementById('content');
+      content.addEventListener('scroll', () => {
+        const headings = content.querySelectorAll('h1, h2, h3, h4');
+        const tocItems = document.querySelectorAll('.toc-item');
+        if (headings.length === 0 || tocItems.length === 0) return;
+
+        let currentId = '';
+        for (let h of headings) {
+          if (h.offsetTop - content.offsetTop <= content.scrollTop + 30) {
+            currentId = h.id;
+          }
+        }
+        tocItems.forEach(item => {
+          if (item.getAttribute('data-target') === currentId) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+      });
+    }
+
     // 加载文档
     async function loadDoc(name, el) {
       // 更新侧边栏高亮
@@ -125,10 +198,14 @@
       try {
         const res = await fetch(name);
         const text = await res.text();
-        document.getElementById('content').innerHTML = marked.parse(text);
-        window.scrollTo(0, 0);
+        const content = document.getElementById('content');
+        content.innerHTML = marked.parse(text);
+        content.scrollTop = 0; // 滚动到顶部
+        buildTOC();
+        initScrollSpy();
       } catch (e) {
-        document.getElementById('content').innerHTML = '<h1>❌ 加载失败</h1><p>文件不存在或路径错误。</p>';
+        content.innerHTML = '<h1>❌ 加载失败</h1><p>文件不存在或路径错误。</p>';
+        document.getElementById('toc').style.display = 'none';
       }
     }
 
