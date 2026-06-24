@@ -9,7 +9,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
   <style>
-    /* 侧边栏宽度 */
     .sidebar { width: 260px; }
   </style>
 </head>
@@ -19,19 +18,25 @@
 
   <script>
     window.$docsify = {
-      // 网站名
       name: '📚 Telephony',
-      // 仓库地址（会显示 GitHub 星标按钮）
       repo: 'https://github.com/helloaiden0305/Telephony_xzy',
-      // 主题色
       themeColor: '#409eff',
-      // 自动加载目录
-      loadSidebar: true,
-      // 默认子目录名
-      subMaxLevel: 3,
-      // 自动替换链接
+      // 侧边栏直接写在 HTML 里
+      loadSidebar: false,
+      // 侧边栏内容
+      sidebar: {
+        '/': [
+          '#### 首页\n- [首页](README.md)',
+          '#### 通讯流程\n- [通讯初始化流程](通讯初始化流程指南.md)',
+          '#### 链路整理\n- [去电链路整理](去电链路整理.md)\n- [来电链路整理](来电链路整理.md)\n- [挂断链路整理](挂断链路整理.md)',
+          '#### 通讯服务\n- [ims通讯服务相关](ims通讯服务相关.md)\n- [VoLTE 指南](VOLTE 指南.md)\n- [SIM卡插卡注册网络整理](SIM卡插卡注册网络整理.md)\n- [STK命令业务](STK命令业务.md)',
+          '#### 硬件相关\n- [MAC 地址.md](MAC 地址.md)\n- [slot.md](slot.md)',
+          '#### MEID/PLMN\n- [MEID、PLMN 和 SPN.md](MEID、PLMN 和 SPN.md)',
+          '#### 内存分析\n- [内存分析指南.md](内存分析指南.md)',
+          '#### 应用优化\n- [桌面联系人快捷卡片重构与优化.md](桌面联系人快捷卡片重构与优化.md)',
+        ]
+      },
       auto2top: true,
-      // 搜索配置
       search: {
         maxAge: 86400000,
         paths: 'auto',
@@ -42,18 +47,11 @@
         noData: '找不到结果',
         depth: 3
       },
-      // 字数统计
       count: {
         countable: true,
         fontsize: '0.9em',
         color: '#909399',
         text: '本文字数'
-      },
-      // 阅读时间
-      plankick: {
-        minReadTime: 0.5,
-        minReadTimeLabel: false,
-        readTimeLabelText: '预计阅读：'
       }
     }
   </script>
