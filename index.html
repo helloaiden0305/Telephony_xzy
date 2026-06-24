@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <title>mydoc</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="mydoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <style>
+    /* 侧边栏宽度 */
+    .sidebar { width: 260px; }
+  </style>
+</head>
+
+<body>
+  <div id="app">加载中...</div>
+
+  <script>
+    window.$docsify = {
+      // 网站名
+      name: '📚 mydoc',
+      // 仓库地址（会显示 GitHub 星标按钮）
+      repo: 'https://github.com/helloaiden0305/mydoc',
+      // 主题色
+      themeColor: '#409eff',
+      // 自动加载目录
+      loadSidebar: true,
+      // 默认子目录名
+      subMaxLevel: 3,
+      // 自动替换链接
+      auto2top: true,
+      // 搜索配置
+      search: {
+        maxAge: 86400000,
+        paths: 'auto',
+        placeholder: {
+          '/zh-CN/': '搜索文档...',
+          '/': 'Type to search'
+        },
+        noData: '找不到结果',
+        depth: 3
+      },
+      // 字数统计
+      count: {
+        countable: true,
+        fontsize: '0.9em',
+        color: '#909399',
+        text: '本文字数'
+      },
+      // 阅读时间
+      plankick: {
+        minReadTime: 0.5,
+        minReadTimeLabel: false,
+        readTimeLabelText: '预计阅读：'
+      }
+    }
+  </script>
+
+  <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code@2/dist/docsify-copy-code.min.js"></script>
+</body>
+
+</html>
